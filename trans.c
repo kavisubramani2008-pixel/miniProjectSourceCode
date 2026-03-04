@@ -10,7 +10,7 @@ struct clientData
     char lastName[15];    // account last name
     char firstName[10];   // account first name
     double balance;       // account balance
-};                        // end structure clientData
+}; // end structure clientData
 
 // prototypes
 unsigned int enterChoice(void);
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
             puts("Incorrect choice");
             break;
         } // end switch
-    }     // end while
+    } // end while
 
     fclose(cfPtr); // fclose closes the file
 } // end main
@@ -91,10 +91,10 @@ void textFile(FILE *readPtr)
                 fprintf(writePtr, "%-6d%-16s%-11s%10.2f\n", client.acctNum, client.lastName, client.firstName,
                         client.balance);
             } // end if
-        }     // end while
+        } // end while
 
         fclose(writePtr); // fclose closes the file
-    }                     // end else
+    } // end else
 } // end function textFile
 
 // update balance in record
@@ -131,7 +131,7 @@ void updateRecord(FILE *fPtr)
 
         // move file pointer to correct record in file
         // move back by 1 record length
-        fseek(fPtr, -sizeof(struct clientData), SEEK_CUR);
+        fseek(fPtr, sizeof(struct clientData), SEEK_CUR);
         // write updated record over old record in file
         fwrite(&client, sizeof(struct clientData), 1, fPtr);
     } // end else
