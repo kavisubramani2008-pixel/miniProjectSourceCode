@@ -18,7 +18,12 @@ void textFile(FILE *readPtr);
 void updateRecord(FILE *fPtr);
 void newRecord(FILE *fPtr);
 void deleteRecord(FILE *fPtr);
-void withdrawRecord(FILE *fptr);
+
+void displayAccounts(FILE *fPtr);
+void depositMoney(FILE *fPtr);
+void withdrawRecord(FILE *fPtr);
+void transferMoney(FILE *fPtr);
+void searchAccount(FILE *fPtr);
 
 int main(int argc, char *argv[])
 {
@@ -57,9 +62,26 @@ int main(int argc, char *argv[])
         case 5:
              withdrawRecord(cfPtr);
              break;
+        //display the accounts
+        case 6:
+             displayAccounts(cfPtr);
+             break;
+        //deposit money
+        case 7:
+            depositMoney(cfPtr);
+            break;
+        //transfer money
+        case 8:
+            transferMoney(cfPtr);
+            break;
+        //search account
+        case 9:
+            searchAccount(cfPtr);
+            break;
+        
         // display if user does not select valid choice
         default:
-            puts("Incorrect choice");
+            puts("Invalid choice");
             break;
         } // end switch
     } // end while
@@ -244,20 +266,225 @@ void newRecord(FILE *fPtr)
     } // end else
 } // end function newRecord
 
+// deposit money
+void depositMoney(FILE *fPtr)
+{
+    struct clientData client;
+
+    unsigned int account;
+    double amount;
+
+    printf("Enter account number: ");
+    scanf("%u", &account);
+
+    fseek(fPtr,
+          (account - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fread(&client,
+          sizeof(struct clientData),
+          1,
+          fPtr);
+
+    if (client.acctNum == 0)
+    {
+        puts("Account does not exist.");
+        return;
+    }
+
+    printf("Enter deposit amount: ");
+    scanf("%lf", &amount);
+
+    if (amount <= 0)
+    {
+        puts("Invalid amount.");
+        return;
+    }
+
+    client.balance += amount;
+
+    fseek(fPtr,
+          sizeof(struct clientData),
+          SEEK_CUR);
+
+    fwrite(&client,
+           sizeof(struct clientData),
+           1,
+           fPtr);
+
+    printf("Deposit successful.\n");
+    printf("New Balance: %.2f\n",
+           client.balance);
+
+           // display all accounts
+void displayAccounts(FILE *fPtr)
+{
+    struct clientData client = {0, "", "", 0.0};
+
+    rewind(fPtr);
+
+    printf("\n=====================================================\n");
+
+    printf("%-10s%-20s%-20s%-10s\n",
+           "Acct",
+           "Last Name",
+           "First Name",
+           "Balance");
+
+    printf("=====================================================\n");
+
+    while (fread(&client,
+                 sizeof(struct clientData),
+                 1,
+                 fPtr) == 1)
+    {
+        if (client.acctNum != 0)
+        {
+            printf("%-10u%-20s%-20s%10.2f\n",
+                   client.acctNum,
+                   client.lastName,
+                   client.firstName,
+                   client.balance);
+        }
+    }
+}
+// transfer money
+void transferMoney(FILE *fPtr)
+{
+    struct clientData sender;
+    struct clientData receiver;
+
+    unsigned int fromAcc;
+    unsigned int toAcc;
+
+    double amount;
+
+    printf("Enter sender account number: ");
+    scanf("%u", &fromAcc);
+
+    printf("Enter receiver account number: ");
+    scanf("%u", &toAcc);
+
+    printf("Enter transfer amount: ");
+    scanf("%lf", &amount);
+
+    // read sender
+    fseek(fPtr,
+          (fromAcc - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fread(&sender,
+          sizeof(struct clientData),
+          1,
+          fPtr);
+
+    // read receiver
+    fseek(fPtr,
+          (toAcc - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fread(&receiver,
+          sizeof(struct clientData),
+          1,
+          fPtr);
+
+    if (sender.acctNum == 0 || receiver.acctNum == 0)
+    {
+        puts("Invalid account.");
+        return;
+    }
+
+    if (amount > sender.balance)
+    {
+        puts("Insufficient balance.");
+        return;
+    }
+
+    sender.balance -= amount;
+    receiver.balance += amount;
+
+    // update sender
+    fseek(fPtr,
+          (fromAcc - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fwrite(&sender,
+           sizeof(struct clientData),
+           1,
+           fPtr);
+
+    // update receiver
+    fseek(fPtr,
+          (toAcc - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fwrite(&receiver,
+           sizeof(struct clientData),
+           1,
+           fPtr);
+
+    puts("Transfer successful.");
+}
+// search account
+void searchAccount(FILE *fPtr)
+{
+    struct clientData client;
+
+    unsigned int account;
+
+    printf("Enter account number to search: ");
+    scanf("%u", &account);
+
+    fseek(fPtr,
+          (account - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fread(&client,
+          sizeof(struct clientData),
+          1,
+          fPtr);
+
+    if (client.acctNum == 0)
+    {
+        puts("Account not found.");
+    }
+    else
+    {
+        printf("\nAccount Found\n");
+        printf("---------------------------\n");
+
+        printf("Account Number : %u\n",
+               client.acctNum);
+
+        printf("Last Name      : %s\n",
+               client.lastName);
+
+        printf("First Name     : %s\n",
+               client.firstName);
+
+        printf("Balance        : %.2f\n",
+               client.balance);
+    }
+
+
 // enable user to input menu choice
 unsigned int enterChoice(void)
 {
     unsigned int menuChoice; // variable to store user's choice
     // display available options
-    printf("%s", "\nEnter your choice\n"
-                 "1 - store a formatted text file of accounts called\n"
-                 "    \"accounts.txt\" for printing\n"
-                 "2 - update an account\n"
-                 "3 - add a new account\n"
-                 "4 - delete an account\n"
-                 "5 - withdraw amount\n"
-                 "6 - end program\n? ");
+    printf("%s", "\nEnter your choice\n");
+    printf("1  - Create text file\n");
+    printf("2  - Update account\n");
+    printf("3  - Add new account\n");
+    printf("4  - Delete account\n");
+    printf("5  - Display all accounts\n");
+    printf("6  - Deposit money\n");
+    printf("7  - Withdraw money\n");
+    printf("8  - Transfer money\n");
+    printf("9- Search account\n");
+     printf("10  - Exit\n");
 
     scanf("%u", &menuChoice); // receive choice from user
-    return menuChoice;
+    return menuChoice;}
+}
 } // end function enterChoice
