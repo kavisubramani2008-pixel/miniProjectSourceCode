@@ -266,7 +266,6 @@ void newRecord(FILE *fPtr)
     } // end else
 } // end function newRecord
 
-// deposit money
 void depositMoney(FILE *fPtr)
 {
     struct clientData client;
@@ -304,7 +303,7 @@ void depositMoney(FILE *fPtr)
     client.balance += amount;
 
     fseek(fPtr,
-          sizeof(struct clientData),
+          -(long)sizeof(struct clientData),
           SEEK_CUR);
 
     fwrite(&client,
@@ -313,9 +312,8 @@ void depositMoney(FILE *fPtr)
            fPtr);
 
     printf("Deposit successful.\n");
-    printf("New Balance: %.2f\n",
-           client.balance);
-
+    printf("New Balance: %.2f\n", client.balance);
+}
            // display all accounts
 void displayAccounts(FILE *fPtr)
 {
@@ -425,11 +423,9 @@ void transferMoney(FILE *fPtr)
 
     puts("Transfer successful.");
 }
-// search account
 void searchAccount(FILE *fPtr)
 {
     struct clientData client;
-
     unsigned int account;
 
     printf("Enter account number to search: ");
@@ -453,19 +449,12 @@ void searchAccount(FILE *fPtr)
         printf("\nAccount Found\n");
         printf("---------------------------\n");
 
-        printf("Account Number : %u\n",
-               client.acctNum);
-
-        printf("Last Name      : %s\n",
-               client.lastName);
-
-        printf("First Name     : %s\n",
-               client.firstName);
-
-        printf("Balance        : %.2f\n",
-               client.balance);
+        printf("Account Number : %u\n", client.acctNum);
+        printf("Last Name      : %s\n", client.lastName);
+        printf("First Name     : %s\n", client.firstName);
+        printf("Balance        : %.2f\n", client.balance);
     }
-
+}
 
 // enable user to input menu choice
 unsigned int enterChoice(void)
@@ -485,6 +474,5 @@ unsigned int enterChoice(void)
      printf("10  - Exit\n");
 
     scanf("%u", &menuChoice); // receive choice from user
-    return menuChoice;}
-}
+    return menuChoice;
 } // end function enterChoice
